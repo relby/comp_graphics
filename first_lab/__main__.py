@@ -11,7 +11,7 @@ IMAGES_PATH: Final = Path('./images')
 
 def get_image(image_path: Path) -> np.array:
     image_path = IMAGES_PATH / image_path
-    return np.array(PILImage.open(image_path), dtype=np.int32)
+    return np.array(PILImage.open(image_path), dtype=int)
 
 def filter(func):
     @wraps(func)
@@ -21,7 +21,9 @@ def filter(func):
             func.__name__,
             self.image_path.suffix,
         ))
-        return func(self, *args, **kwargs)
+        result = func(self, *args, **kwargs)
+        self.image = self.image.clip(0, 0xFF)
+        return result
     return wrapper
 
 
@@ -31,7 +33,7 @@ class Image(object):
         self.image_path: Path = Path(image_path)
 
     def save(self) -> None:
-        uint8_array = self.image.clip(0, 0xFF).astype(np.uint8)
+        uint8_array = self.image.astype(np.uint8)
         PILImage.fromarray(uint8_array).save(
             IMAGES_PATH / self.image_path,
         )
@@ -39,7 +41,7 @@ class Image(object):
 
     @filter
     def inversed(self) -> Self:
-        self.image = np.full(self.image.shape, 0xFF, dtype=np.uint8) - self.image
+        self.image = np.full(self.image.shape, 0xFF) - self.image
         return self
 
     @filter
@@ -51,6 +53,7 @@ class Image(object):
     def mirrored(self) -> Self:
         height, width, _ = self.image.shape
         half_width = width // 2
+        # TODO: Doesn't work if width is odd
         self.image[:, half_width:] = np.flip(self.image[: , :half_width], 1)
         return self
 
@@ -77,7 +80,7 @@ class Image(object):
 
 
 def main():
-    image = Image('main_image.jpeg').grayscale()
+    image = Image('main_image.jpeg').inversed().rotated_90_clockwise().inversed().increased_brightness().grayscale()
     image.save()
 
     image = Image('main_image.jpeg').increased_brightness()
