@@ -17,6 +17,7 @@
           packages = with pkgs; [
             (poetry2nix.mkPoetryEnv { projectDir = self; })
             zlib
+            feh
           ];
         };
       apps.${system}.default = {

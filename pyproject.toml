@@ -9,6 +9,8 @@ packages = [{include = "first_lab"}]
 [tool.poetry.dependencies]
 python = "^3.10"
 numpy = "^1.24.2"
+pillow = "^9.4.0"
+typing-extensions = "^4.5.0"
 
 [tool.poetry.scripts]
 first_lab = "first_lab.__main__:main"
