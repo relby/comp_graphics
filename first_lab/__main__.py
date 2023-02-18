@@ -77,6 +77,17 @@ class Image(object):
         self.image[:, :, 1] += coef
         self.image[:, :, 2] += coef
         return self
+    
+    @filter
+    def blur(self, radius: int = 20) -> Self:
+        maxsum = (radius*2+1) ** 2 * 255
+        for i in range(self.image.shape[0]):
+            for j in range(self.image.shape[1]):
+                for k in range(3):
+                    self.image[i,j,k] = np.sum(self.image[np.maximum(i-radius, 0):np.minimum(i+radius+1, self.image.shape[0]), 
+                        np.maximum(j-radius, 0):np.minimum(j+radius+1, self.image.shape[1]), k])/maxsum * 255
+        return self
+
 
     @filter
     def compressed(self, scale: int = 2):
@@ -95,6 +106,9 @@ class Image(object):
 
 def main():
     image = Image('main_image.jpeg').compressed()
+    image.save()
+
+    image = Image('main_image.jpeg').blur(10)
     image.save()
 
 if __name__ == '__main__':
