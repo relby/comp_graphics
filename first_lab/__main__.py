@@ -78,12 +78,23 @@ class Image(object):
         self.image[:, :, 2] += coef
         return self
 
+    @filter
+    def compressed(self, scale: int = 2):
+        height, width, channels = self.image.shape
+        new_height, new_width = int(np.ceil(height / scale)), int(np.ceil(width / scale))
+        compressed_image = np.empty(
+            (new_height, new_width, channels),
+            dtype=int,
+        )
+        for i in range(0, height, scale):
+            for j in range(0, width, scale):
+                for k in range(3):
+                    compressed_image[i // scale, j // scale, k] = np.average(self.image[i:i+scale, j:j+scale, k])
+        self.image = compressed_image
+        return self
 
 def main():
-    image = Image('main_image.jpeg').inversed().rotated_90_clockwise().inversed().increased_brightness().grayscale()
-    image.save()
-
-    image = Image('main_image.jpeg').increased_brightness()
+    image = Image('main_image.jpeg').compressed()
     image.save()
 
 if __name__ == '__main__':
