@@ -51,10 +51,9 @@ class Image(object):
 
     @filter
     def mirrored(self) -> Self:
-        height, width, _ = self.image.shape
+        _, width, _ = self.image.shape
         half_width = width // 2
-        # TODO: Doesn't work if width is odd
-        self.image[:, half_width:] = np.flip(self.image[: , :half_width], 1)
+        self.image[:, half_width + width % 2:] = np.flip(self.image[: , :half_width], 1)
         return self
 
     @filter
@@ -103,7 +102,7 @@ class Image(object):
         return self
 
 def main():
-    image = Image('main_image.jpeg').compressed()
+    image = Image('main_image.jpeg').mirrored()
     image.save()
 
     image = Image('main_image.jpeg').blur(10)
