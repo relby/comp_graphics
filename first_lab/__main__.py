@@ -65,17 +65,15 @@ class Image(object):
             self.image[:, :, 2] * .11
         )
 
-        self.image[:, :, 0] = intensity
-        self.image[:, :, 1] = intensity
-        self.image[:, :, 2] = intensity
+        for k in range(3):
+            self.image[:, :, k] = intensity
 
         return self
 
     @filter
     def increased_brightness(self, coef: int = 100) -> Self:
-        self.image[:, :, 0] += coef
-        self.image[:, :, 1] += coef
-        self.image[:, :, 2] += coef
+        for k in range(3):
+            self.image[:, :, k] += coef
         return self
     
     @filter
