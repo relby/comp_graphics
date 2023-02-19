@@ -1,17 +1,18 @@
-from PIL import Image as PILImage
-import numpy as np
-
-from pathlib import Path
-
-from typing import Final
-from typing_extensions import Self
 from functools import wraps
+from pathlib import Path
+from typing import Final
+
+import numpy as np
+from PIL import Image as PILImage
+from typing_extensions import Self
 
 IMAGES_PATH: Final = Path('./images')
+
 
 def get_image(image_path: Path) -> np.array:
     image_path = IMAGES_PATH / image_path
     return np.array(PILImage.open(image_path), dtype=int)
+
 
 def filter(func):
     @wraps(func)
@@ -53,7 +54,7 @@ class Image(object):
     def mirrored(self) -> Self:
         _, width, _ = self.image.shape
         half_width = width // 2
-        self.image[:, half_width + width % 2:] = np.flip(self.image[: , :half_width], 1)
+        self.image[:, half_width + width % 2:] = np.flip(self.image[:, :half_width], 1)
         return self
 
     @filter
@@ -74,22 +75,25 @@ class Image(object):
         for k in range(3):
             self.image[:, :, k] += coef
         return self
-    
+
     @filter
     def blur(self, radius: int = 20) -> Self:
-        maxsum = (radius*2+1) ** 2 * 255
+        max_sum = (radius*2+1) ** 2 * 0xFF
         for i in range(self.image.shape[0]):
             for j in range(self.image.shape[1]):
                 for k in range(3):
-                    self.image[i,j,k] = np.sum(self.image[np.maximum(i-radius, 0):np.minimum(i+radius+1, self.image.shape[0]), 
-                        np.maximum(j-radius, 0):np.minimum(j+radius+1, self.image.shape[1]), k])/maxsum * 255
+                    self.image[i, j, k] = np.sum(self.image[
+                        np.maximum(i-radius, 0):np.minimum(i+radius+1, self.image.shape[0]),
+                        np.maximum(j-radius, 0):np.minimum(j+radius+1, self.image.shape[1]),
+                        k,
+                    ]) / max_sum * 0xFF
         return self
-
 
     @filter
     def compressed(self, scale: int = 2):
         height, width, channels = self.image.shape
-        new_height, new_width = int(np.ceil(height / scale)), int(np.ceil(width / scale))
+        new_height = int(np.ceil(height / scale))
+        new_width = int(np.ceil(width / scale))
         compressed_image = np.empty(
             (new_height, new_width, channels),
             dtype=int,
@@ -97,9 +101,12 @@ class Image(object):
         for i in range(0, height, scale):
             for j in range(0, width, scale):
                 for k in range(3):
-                    compressed_image[i // scale, j // scale, k] = np.average(self.image[i:i+scale, j:j+scale, k])
+                    compressed_image[i // scale, j // scale, k] = np.average(
+                        self.image[i:i+scale, j:j+scale, k],
+                    )
         self.image = compressed_image
         return self
+
 
 def main():
     image = Image('main_image.jpeg').mirrored()
@@ -107,6 +114,7 @@ def main():
 
     image = Image('main_image.jpeg').blur(10)
     image.save()
+
 
 if __name__ == '__main__':
     main()
