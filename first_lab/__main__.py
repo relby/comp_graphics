@@ -107,12 +107,28 @@ class Image(object):
         self.image = compressed_image
         return self
 
+    @filter
+    def sepia(self) -> Self:
+        sepia_matrix = (
+            (0.393, 0.769, 0.189),
+            (0.349, 0.686, 0.168),
+            (0.272, 0.534, 0.131),
+        )
+        for k in range(3):
+            r, g, b = sepia_matrix[k]
+            self.image[:, :, k] = (
+                r * self.image[:, :, 0] +
+                g * self.image[:, :, 1] +
+                b * self.image[:, :, 2]
+            )
+
+        return self
 
 def main():
     image = Image('main_image.jpeg').mirrored()
     image.save()
 
-    image = Image('main_image.jpeg').blur(10)
+    image = Image('main_image.jpeg').sepia()
     image.save()
 
 
