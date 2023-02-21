@@ -124,11 +124,29 @@ class Image(object):
 
         return self
 
+    @filter
+    def average_color(self, coefficient: float = 0.5):
+        mid_rgb_color = (
+            np.average(self.image[:, :, 0]),
+            np.average(self.image[:, :, 1]),
+            np.average(self.image[:, :, 2]),
+        )
+        height, width, _ = self.image.shape
+        print(mid_rgb_color)
+        for i in range(height):
+            for j in range(width):
+                self.image[i, j] = [x + (y - x) * coefficient for x, y in zip(self.image[i, j], mid_rgb_color)]
+        return self
+
 def main():
-    image = Image('main_image.jpeg').mirrored()
+    image_path = 'pasha.jpg'
+    image = Image(image_path).mirrored()
     image.save()
 
-    image = Image('main_image.jpeg').sepia()
+    image = Image(image_path).sepia()
+    image.save()
+
+    image = Image(image_path).average_color()
     image.save()
 
 
