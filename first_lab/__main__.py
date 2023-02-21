@@ -75,6 +75,34 @@ class Image(object):
         for k in range(3):
             self.image[:, :, k] += coef
         return self
+    @filter
+    def blur_faster(self, radius: int = 20) -> Self:
+        max_sum = (radius*2+1) ** 2 * 0xFF
+        partialSum = np.empty(self.image.shape)
+        partialSum[0,0,:] = self.image[0,0,:]
+        for i in range(1, partialSum.shape[0]):
+            partialSum[i, 0, :] = partialSum[i-1, 0, :] + self.image[i, 0, :]
+        for i in range(1, partialSum.shape[1]):
+            partialSum[0, i, :] = partialSum[0, i-1, :] + self.image[0, i, :]
+        for i in range(1, partialSum.shape[0]):
+            for j in range(1, partialSum.shape[1]):
+                for k in range(partialSum.shape[2]):
+                    partialSum[i,j,k] = partialSum[i-1,j,k] + partialSum[i,j-1,k] + self.image[i,j,k] - partialSum[i-1,j-1,k]
+        for i in range(self.image.shape[0]):
+            for j in range(self.image.shape[1]):
+                    bbound = np.minimum(i + radius, self.image.shape[0]-1)
+                    rbound = np.minimum(j + radius, self.image.shape[1]-1)
+                    self.image[i,j,:] = partialSum[bbound, rbound, :]
+                    if i > radius:
+                        self.image[i,j,:] = self.image[i,j,:] - partialSum[i-radius, rbound, :]
+                    if j > radius:
+                        self.image[i,j,:] = self.image[i,j,:] - partialSum[bbound, j-radius, :]
+                    if i > radius and j > radius:
+                        self.image[i,j,:] = self.image[i,j,:] + partialSum[i-radius, j-radius, :]
+
+                    self.image[i,j,:] = self.image[i,j,:] / max_sum * 0xFF
+        return self
+
 
     @filter
     def blur(self, radius: int = 20) -> Self:
